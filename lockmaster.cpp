@@ -18,23 +18,24 @@ int main() {
 
 	auto t1 = [&rwMutex, &normalMutex] () {
 		// Acquire readlock on rwMutex
-		std::shared_lock<std::shared_timed_mutex> rwLock(rwMutex);
-
-		// ...Do a lot of operations guarded by "rwLock" as a reader...
+		std::shared_lock<std::shared_timed_mutex> rLock(rwMutex);
+		// Do arcane magic no4 with read mutex
 		lotOfOperations(4);
-
 		// Acuire lock on normalMutex
 		std::lock_guard<std::mutex> lock(normalMutex);
-
-		// Do a lot of operations guarded by "lock"
+		// Do arcane magic no3 with normal mutex
+		lotOfOperations(3);
 	};
 
 	auto t2 = [&rwMutex, &normalMutex] () {
 		// Acuire lock on normalMutex
 		std::lock_guard<std::mutex> lock(normalMutex);
+		// Do arcane magic no3 with normal mutex
 		lotOfOperations(3);
 		// Acquire readlock on rwMutex
-		std::shared_lock<std::shared_timed_mutex> rwLock(rwMutex);
+		std::shared_lock<std::shared_timed_mutex> rLock(rwMutex);
+		// Do arcane magic no4 with read mutex
+		lotOfOperations(4);
 	};
 
 	// Start a thread to run the code in t1
@@ -42,7 +43,13 @@ int main() {
 	// Start a thread to run the code in t2
 	std::thread thread2(t2);
 
-	// Do the most arcane stuff
+	// do arcane magic no1
+	lotOfOperations(1);
+
+	// Aquire writelock as it is needed for safety of lotOfOperations(5)
+	std::unique_lock<std::shared_timed_mutex> wLock(rwMutex);
+
+	// Do the most arcane stuff ever
 	lotOfOperations(5);
 
 	// Wait for the threads to finish
